@@ -16,6 +16,14 @@ bool do_system(const char *cmd)
  *   and return a boolean true if the system() call completed with success
  *   or false() if it returned a failure
 */
+    int ret = system(cmd);
+if( ret == -1)
+{
+return false;
+}
+  if (WIFEXITED(ret) && WEXITSTATUS(ret) == 0) {
+        return true;
+    }
 
     return true;
 }
@@ -48,7 +56,7 @@ bool do_exec(int count, ...)
     // this line is to avoid a compile warning before your implementation is complete
     // and may be removed
     command[count] = command[count];
-
+va_end(args);
 /*
  * TODO:
  *   Execute a system command by calling fork, execv(),
@@ -58,10 +66,22 @@ bool do_exec(int count, ...)
  *   as second argument to the execv() command.
  *
 */
+pid_t  pid = fork ();
+int status;
+if (pid == -1)
+return -1;
+else if (pid == 0) {
 
-    va_end(args);
+ execv(command[0],command);
+_exit(1);
 
-    return true;
+
+}
+if (waitpid (pid, &status, 0) == -1)
+return false;
+
+return WIFEXITED(status) && WEXITSTATUS(status) == 0;
+
 }
 
 /**
@@ -84,16 +104,34 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
     // and may be removed
     command[count] = command[count];
 
-
+ va_end(args);
 /*
  * TODO
- *   Call execv, but first using https://stackoverflow.com/a/13784315/1446624 as a refernce,
+ *   Call execv, but first using https://stackoverflow.com/a/13784315/1446624
+ as a refernce,
  *   redirect standard out to a file specified by outputfile.
  *   The rest of the behaviour is same as do_exec()
  *
 */
+pid_t  pid = fork ();
+int status;
 
-    va_end(args);
+if (pid == -1){
+return -1;
+}
+else if (pid == 0) {
+  int fd = open( outputfile, O_WRONLY|O_TRUNC|O_CREAT, 0644);
+  if (dup2(fd, 1) < 0) { return -1; }
+  close(fd);
+execv(command[0],command);
+_exit(1);
+}
 
-    return true;
+if (waitpid (pid, &status, 0) == -1){
+
+  return -1;
+}
+
+return WIFEXITED(status) && WEXITSTATUS(status) == 0;
+
 }
