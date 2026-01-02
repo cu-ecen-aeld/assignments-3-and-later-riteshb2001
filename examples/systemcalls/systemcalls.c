@@ -9,16 +9,15 @@
 */
 bool do_system(const char *cmd)
 {
-
 /*
  * TODO  add your code here
  *  Call the system() function with the command set in the cmd
  *   and return a boolean true if the system() call completed with success
  *   or false() if it returned a failure
 */
-    int ret = system(cmd);
+int ret = system(cmd);
 if( ret == -1)
-{
+{perror("system failed"); 
 return false;
 }
   if (WIFEXITED(ret) && WEXITSTATUS(ret) == 0) {
@@ -56,7 +55,7 @@ bool do_exec(int count, ...)
     // this line is to avoid a compile warning before your implementation is complete
     // and may be removed
     command[count] = command[count];
-va_end(args);
+    va_end(args);
 /*
  * TODO:
  *   Execute a system command by calling fork, execv(),
@@ -73,7 +72,7 @@ return -1;
 else if (pid == 0) {
 
  execv(command[0],command);
-_exit(1);
+exit(1);
 
 
 }
@@ -124,14 +123,13 @@ else if (pid == 0) {
   if (dup2(fd, 1) < 0) { return -1; }
   close(fd);
 execv(command[0],command);
-_exit(1);
+exit(1);
 }
 
 if (waitpid (pid, &status, 0) == -1){
 
   return -1;
 }
-
 return WIFEXITED(status) && WEXITSTATUS(status) == 0;
 
 }
